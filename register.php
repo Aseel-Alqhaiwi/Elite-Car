@@ -4,23 +4,33 @@ include 'config.php';
 $message = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = $_POST['name'];
-    $email = $_POST['email'];
+    $name = trim($_POST['name']);
+    $email = trim($_POST['email']);
     $password = $_POST['password'];
 
-    // Password strength validation
-    if (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
+    // Name validation (must contain at least two words)
+    if (!preg_match('/^\s*([A-Za-z]+)\s+([A-Za-z]+)\s*$/', $name)) {
+        $message = "Please enter your full name (first and last name).";
+    } 
+    // Email validation
+    elseif (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        $message = "Invalid email format.";
+    } 
+    // Password validation (At least 8 characters, 1 uppercase, 1 lowercase, 1 number, 1 special character)
+    elseif (!preg_match('/^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/', $password)) {
         $message = "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.";
     } else {
-        // Hash the password
+        // Hash the password securely
         $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
         try {
-            // Insert user into the database
+            // Insert user into the database with a prepared statement
             $sql = "INSERT INTO users (name, email, password) VALUES (?, ?, ?)";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$name, $email, $hashed_password]);
-            header("Location: login.php?success=1"); // Redirect to login page with success indicator
+
+            // Redirect to login page with success message
+            header("Location: login.php?success=1");
             exit();
         } catch (Exception $e) {
             $message = "Error: " . $e->getMessage();
@@ -48,6 +58,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 strengthIndicator.style.color = "red";
             }
         }
+
+        // Name validation on input
+        function validateName() {
+            const nameInput = document.getElementById("name").value.trim();
+            const nameFeedback = document.getElementById("name-feedback");
+            const nameRegex = /^\s*([A-Za-z]+)\s+([A-Za-z]+)\s*$/;
+
+            if (nameRegex.test(nameInput)) {
+                nameFeedback.textContent = "Valid name format";
+                nameFeedback.style.color = "green";
+            } else {
+                nameFeedback.textContent = "Enter at least first and last name";
+                nameFeedback.style.color = "red";
+            }
+        }
+        function validateEmail() {
+    const emailInput = document.getElementById("email").value.trim();
+    const emailFeedback = document.getElementById("email-feedback");
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+    if (emailRegex.test(emailInput)) {
+        emailFeedback.textContent = "Valid email format";
+        emailFeedback.style.color = "green";
+    } else {
+        emailFeedback.textContent = "Enter a valid email (e.g., user@example.com)";
+        emailFeedback.style.color = "red";
+    }
+}
+
+        }
     </script>
 </head>
 <body>
@@ -58,12 +98,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
         <form action="register.php" method="POST">
             <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" name="name" class="form-control" required>
+                <label for="name" class="form-label">Full Name</label>
+                <input type="text" name="name" id="name" class="form-control" oninput="validateName()" required>
+                <small id="name-feedback" class="form-text"></small>
             </div>
             <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input type="email" name="email" class="form-control" required>
+                <input type="email" name="email" class="form-control" oninput="validateEmail() required>
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
