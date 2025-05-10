@@ -97,11 +97,20 @@ $users = $conn->query("SELECT * FROM users ORDER BY created_at DESC")->fetchAll(
     </style>
 </head>
 <body>
-<div class="container">
-<h1 class="mb-3">Manage Users</h1>
-<a href="dashboard.php" class="btn btn-outline-light btn-custom mb-3">
-    <i class="bi bi-arrow-left"></i> Back to Dashboard
-</a>
+<!-- العنوان في المنتصف -->
+<div class="text-center mb-4">
+    <h1 class="text-danger">Manage Users</h1>
+</div>
+
+<!-- أزرار التحكم بنفس صف واحد -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <a href="dashboard.php" class="btn btn-outline-light btn-custom">
+        <i class="bi bi-arrow-left-circle"></i> Back to Dashboard
+    </a>
+
+</div>
+
+
 
 
     <?php if (count($users) === 0): ?>

@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         setcookie('user_name', htmlspecialchars($user['name']), time() + (86400 * 30), "/", "", true, true);
                     }
 
-                    header("Location: ../index.php");
+                    header("Location: ../pages/index.php");
                     exit();
                 } else {
                     $message = "Invalid email or password.";
