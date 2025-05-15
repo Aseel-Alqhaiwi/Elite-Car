@@ -1,6 +1,7 @@
 <?php include '../includes/header.php'; ?>
 <?php include '../config.php'; ?>
 <style>
+/* نفس الـ CSS كما هو */
 .card.car-card {
     background-color: #212529;
     border: none;
@@ -15,7 +16,6 @@ body, html {
     background-color: #121416;
     color: #fff;
 }
-
 #resultsContainer {
     background: linear-gradient(to bottom, #1a1d20, #121416);
     padding: 3rem;
@@ -23,7 +23,6 @@ body, html {
     margin-top: 2rem;
     box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
 }
-
 .card.car-card:hover {
     transform: translateY(-6px);
     box-shadow: 0 6px 20px rgba(255, 75, 75, 0.2);
@@ -119,7 +118,7 @@ body, html {
 <div class="modal fade" id="contactModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content bg-dark text-light">
-      <form action="../forms/submit_contact.php" method="POST">
+      <form id="contactForm">
         <div class="modal-header">
           <h5 class="modal-title">Contact Seller</h5>
           <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -128,7 +127,11 @@ body, html {
             <input type="hidden" name="car_name" id="car_name_input">
             <div class="mb-3"><label>Your Name</label><input type="text" class="form-control" name="name" required></div>
             <div class="mb-3"><label>Your Email</label><input type="email" class="form-control" name="email" required></div>
-            <div class="mb-3"><label>Phone</label><input type="text" class="form-control" name="phone"></div>
+           <div class="mb-3">
+  <label>Phone</label>
+  <input type="text" class="form-control" name="phone" id="phoneInput" inputmode="numeric" pattern="[0-9]*" maxlength="15" required>
+</div>
+
             <div class="mb-3">
                 <label>Preferred Time</label>
                 <select class="form-select" name="preferred_time" required>
@@ -164,7 +167,10 @@ body, html {
   </div>
 </div>
 
+<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 <script>
 function fetchCars(page = 1) {
     const form = document.getElementById('filterForm');
@@ -189,6 +195,9 @@ document.getElementById('resetFilters').addEventListener('click', function () {
 
 document.addEventListener('DOMContentLoaded', () => {
     fetchCars();
+document.getElementById("phoneInput").addEventListener("input", function (e) {
+  this.value = this.value.replace(/[^0-9]/g, '');
+});
 
     document.addEventListener('click', function (e) {
         if (e.target.classList.contains('view-details-btn')) {
@@ -200,7 +209,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(html => {
                     modalBody.innerHTML = html;
                     const modal = new bootstrap.Modal(document.getElementById('carDetailsModal'));
-                    modal.show(); // Show the modal manually
+                    modal.show();
                 })
                 .catch(() => modalBody.innerHTML = '<div class="text-danger">Failed to load details.</div>');
         }
@@ -209,6 +218,50 @@ document.addEventListener('DOMContentLoaded', () => {
             const carName = e.target.getAttribute('data-car');
             document.getElementById('car_name_input').value = carName;
         }
+    });
+
+    // Contact Form Submission
+    document.getElementById("contactForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+
+        const form = e.target;
+        const formData = new FormData(form);
+
+        fetch("/CarElite/forms/submit_contact.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                const modalEl = document.getElementById('contactModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                modal.hide();
+
+                form.reset();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Message Sent!',
+                    text: 'We will contact you shortly.',
+                    showConfirmButton: false,
+                    timer: 2000
+                });
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Oops!',
+                    text: 'Something went wrong. Please try again.'
+                });
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+                icon: 'error',
+                title: 'Error!',
+                text: 'Could not send the message.'
+            });
+        });
     });
 });
 </script>

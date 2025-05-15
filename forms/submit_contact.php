@@ -14,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $conn->prepare($sql);
     $stmt->execute([$car_name, $name, $email, $phone, $preferred_time, $message]);
 
-    header("Location: index.php?msg=success");
     exit;
 }
 ?>
